@@ -8,9 +8,8 @@ import About from './pre-login/about/about';
 import SignUp from './pre-login/signup/signup';
 
 //Post-login
-import Dashboard from './user/dashboard/dashboard';
+import Dashboard from './user/home/home';
 import Settings from './user/settings/settings';
-import Groups from './user/groups/groups';
 
 const Routes = () => (
     <R>
@@ -22,7 +21,6 @@ const Routes = () => (
         {/*Post-login*/}
         <Route path="/dashboard" element={<Dashboard/>} exact/>
         <Route path="/settings" element={<Settings/>} exact/>
-        <Route path="/groups" element={<Groups/>} exact/>
     </R>
         
 );

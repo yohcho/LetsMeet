@@ -1,0 +1,75 @@
+.groups-page{
+    min-height: 100vh;
+}
+
+.groups-page-content{
+    height: 100%;
+}
+
+.groups-page-content-hide{
+    opacity: 0.8;
+}
+
+.groups-page-content-top{
+    height: 10vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2.5%;
+}
+
+.groups-page-content-top-button{
+    background: none;
+    cursor: pointer;
+    height: 60%;
+    border: none;
+}
+
+.groups-page-content-top-button > img{
+    height: 100%;
+    width: auto;
+}
+
+.groups-page-content-main{
+    min-height: 80vh;
+    width: 95%;
+    background-color: #A5A682;
+    padding: 5vh 2.5%;
+}
+
+.groups-page-content-main-pending{
+    text-align: start;
+    border: 1px solid black;
+    padding: 15px;
+    margin-bottom: 30px;
+    background-color: #FBB651;
+}
+
+.groups-page-content-main-pending > h3{
+    margin-bottom: 15px;
+}
+
+.groups-page-content-main-current{
+    border: 1px solid black;
+    padding: 15px;
+    background-color: #FBB651;
+}
+
+.groups-page-content-main-current-header{
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.groups-page-content-main-current-header-createsection-button{
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+.groups-page-content-main-current-header-createsection-form input{
+    margin-left: 10px;
+}

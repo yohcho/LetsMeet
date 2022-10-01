@@ -1,0 +1,21 @@
+.groups-page-content-main-pending-indiv{
+    border: 1px solid black;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.groups-page-content-main-pending-indiv-buttons{
+    display: flex;
+}
+
+.groups-page-content-main-pending-indiv-buttons > button{
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 17px;
+    margin: 2px 2px;
+}

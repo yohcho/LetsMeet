@@ -20,7 +20,6 @@ function Sidebar (props) {
                 <img src={logo} alt="logo"></img>
                 <hr></hr>
                 <button onClick={()=>{handleNavigate("/dashboard")}}>Home</button> <br></br>
-                <button onClick={()=>{handleNavigate("/groups")}}>Groups</button> <br></br>
                 <button onClick={()=>{handleNavigate("/settings")}}>Settings</button> <br></br>
                 <button onClick={()=>{handleNavigate("/")}}>Logout</button> <br></br>
             </div>

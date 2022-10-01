@@ -17,8 +17,12 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
-mongoose.connect(process.env.DATABASE_URL);
+const initialize = async()=>{
+    await mongoose.connect(process.env.DATABASE_URL)
+}
 
+initialize()
+console.log("connected")
 
 app.use('/api/landing/', require('./routes/landingRoutes'));
 app.use('/api/groups/', require('./routes/groupsRoutes'));
