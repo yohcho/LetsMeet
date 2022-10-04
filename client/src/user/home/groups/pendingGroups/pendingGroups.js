@@ -25,10 +25,6 @@ const PendingGroups=(props)=>{
     }
 
     const handleAccept=(group)=>{
-        setPendingGroups(prevPendingGroups=>{
-            const newPendingGroups=prevPendingGroups.filter(pendingGroup=>pendingGroup.groupName!==group.groupName)
-            return newPendingGroups
-        })
         var config = {
             method:"post",
             url:"http://localhost:5000/api/users/acceptPendingUser",
@@ -37,15 +33,14 @@ const PendingGroups=(props)=>{
             },
             params:{
                 groupId:group.groupId,
+                name:group.groupName,
                 email:props.userInfo.email
             }
         }
         axios(config)
         .then(res=>{
-            props.rerender(prevGroups=>{
-                const newGroups = [...prevGroups,res.data.group]
-                return newGroups
-            })
+            props.rerender(prevRender=>!prevRender)
+            getPendingGroups()
         })
         .catch(err=>{
             console.log(err)
@@ -69,6 +64,7 @@ const PendingGroups=(props)=>{
         }
         axios(config)
         .then(res=>{
+            getPendingGroups()
         })
         .catch(err=>{
             console.log(err)

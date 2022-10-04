@@ -21,9 +21,27 @@ router.get('/getGroups', async (req,res)=>{
     }
 })
 
+router.get('/getGroupData', async (req,res)=>{
+    try{
+        const group = await controller.getGroupData(req.query.id)
+        res.json({group:group})
+    } catch(err){
+        console.log(err)
+    }
+})
+
 router.post('/addMember', async (req,res)=>{
     try{
         await controller.addMember(req.body)
+        res.json({})
+    } catch(err){
+        console.log(err)
+    }
+})
+
+router.post('/removeMember', async (req,res)=>{
+    try{
+        await controller.removeMember(req.body)
         res.json({})
     } catch(err){
         console.log(err)

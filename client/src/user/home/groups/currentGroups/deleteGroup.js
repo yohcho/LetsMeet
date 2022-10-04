@@ -29,14 +29,8 @@ const DeleteGroup = (props)=>{
 
         axios(config)
         .then((res)=>{
-            props.rerender(prevGroups=>{
-                const newGroups = []
-                for(const currGroup of prevGroups){
-                    if(currGroup._id!==group._id)
-                        newGroups.push(currGroup)
-                }
-                return newGroups
-            })
+            handleClose()
+            props.rerender(prevRender=>!prevRender)
         })
         .catch((err)=>{
             console.log(err)

@@ -1,121 +1,133 @@
 import { useState } from 'react';
-import Dialog from '@mui/material/Dialog';
-import { DialogTitle, DialogContent } from '@mui/material';
+import CanvasJSReact from "./canvasjs-3.7/canvasjs.react"
 import axios from 'axios';
 
-const IndivMeeting=(props)=>{
+const IndivMeetingAdmin=(props)=>{
+    var CanvasJS = CanvasJSReact.CanvasJS;
+    var CanvasJSChart = CanvasJSReact.CanvasJSChart;
     const details = props.meeting
-    const submission = new Map()
-    const submissionCount = new Map()
-    const startDate = details.range[0].split("T")[0]
-    const endDate = details.range[1].split("T")[0]
+    const startDate = new Date(props.meeting.range[0].split("T")[0].replaceAll('-','/'))
+    const endDate = new Date(props.meeting.range[1].split("T")[0].replaceAll('-','/'))
 
-    const [selectedSlot,setSelectedSlot] = useState(details.slots)
-
-    let viewAmount = 1
-
-    const [open,setOpen] = useState(false)
-    const [generatedSlots,setGeneratedSlots] = useState([])
-    const handleClickOpen = () => {
-        console.log(details.haveUploaded)
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    const createUsersDisplay=(uploaded)=>{
-        if(uploaded)
-            return details.haveUploaded.map(user=>{
-                return <div key={user.user}>{user.user}</div>
-            })
-        if(!uploaded)
-            return details.haveNotUploaded.map(user=>{
-                return <div key={user.user}>{user.user}</div>
-            })
-    }
+    const startString = props.meeting.timeRangeStart.split(":")
+    const endString = props.meeting.timeRangeEnd.split(":")
+    const startTime = parseInt(startString[0])+ (startString[1]!=="0" && 0.5)
+    const endTime = parseInt(endString[0])+ (endString[1]!=="0" && 0.5)
     
+    const [showData,setShowData] = useState(true)
+
+    const slotToTime=(slot)=>{
+        const time = slot.split("-")
+        time[0] = parseInt(time[0])+startTime*2
+        time[1] = parseInt(time[1])
+        const date = new Date(startDate)
+        date.setDate(date.getDate()+time[1])
+        date.setTime(date.getTime()+(time[0]*30*60*1000))
+        return date
+    }
+
     const fetchSubmission=()=>{
-        for(const uploads of details.haveUploaded){
-            for(const slot of uploads.slots){
-                const section = Math.floor((slot+details.duration)/(details.duration*2))
-                if(submission.has(section)){
-                    submissionCount.set(section,submissionCount.get(section)+1)
-                    submission.set(section,[...submission.get(section),slot])
-                }
-                else{
-                    submissionCount.set(section,1)
-                    submission.set(section,[slot])
-                }
-            }
+        const submissionMap = new Map()
+        let current = new Date(startDate)
+        while(current.getTime()<=endDate.getTime()){
+            submissionMap.set(`${current.toLocaleDateString().substring(0,current.toLocaleDateString().lastIndexOf("/"))}A`,0)
+            submissionMap.set(`${current.toLocaleDateString().substring(0,current.toLocaleDateString().lastIndexOf("/"))}B`,0)
+            current.setDate(current.getDate()+1)
         }
-    }
+        const middleTime = startTime<endTime ? (startTime+endTime)/2 : (startTime+(endTime+24-startTime)/2)%24
+        
+        const allSlots = []
+        const uploads = (details.haveUploaded)
+        for(const upload of uploads){
+            for(const slot of upload.slots)
+                allSlots.push(slotToTime(slot))
+        }
 
-    const slotToDate=(key,num)=>{
-        let factor=2
-        if(num){
-            factor=4
+        for(const date of allSlots){
+            let dateString = `${date.toLocaleDateString().substring(0,date.toLocaleDateString().lastIndexOf("/"))}`
+            if(date.getHours()<middleTime)
+                submissionMap.set(`${dateString}A`,submissionMap.get(`${dateString}A`)+1)
+            else
+                submissionMap.set(`${dateString}B`,submissionMap.get(`${dateString}B`)+1)
         }
-        const start=startDate.replaceAll('-','/')
-        let slotdate = new Date(start)
-        let begin= new Date(start)
-        slotdate.setDate(begin.getDate()+Math.floor(key/48))
-        slotdate = new Date(slotdate.getTime()+30*60000*(key%48))
-        const slotDateTimeOfDay = slotdate.getHours() > 11 ? "PM" : "AM"
-        let slotEnd = new Date(slotdate.getTime()+30*60000*details.duration*factor)
-        const slotEndTimeofDay = slotEnd.getHours() > 11 ? "PM" : "AM"
-        if(slotdate.getHours()===0){
-            slotdate.setHours(12)
-        }
-        if(slotEnd.getHours()===0){
-            slotEnd.setHours(12)
-        }
-        return [
-            `${slotdate[Symbol.toPrimitive]('string').substring(0,slotdate[Symbol.toPrimitive]('string').lastIndexOf(":"))} ${slotDateTimeOfDay}`,
-            `${slotEnd[Symbol.toPrimitive]('string').substring(0,slotEnd[Symbol.toPrimitive]('string').lastIndexOf(":"))} ${slotEndTimeofDay}`
-        ]
+        return submissionMap
+        
     }
-
-    const slotSubmissionDisplay=()=>{
-        const submissions = []
-        submission.forEach((value,key)=>{
-            const slots = slotToDate(key)
-            submissions.push(
-                <p key={slots[0]}>
-                    {`
-                        ${slots[0]} ~
-                        ${slots[1]}
-                        ,${value}
-                    `}
-                </p>
+    const submissionsMap = fetchSubmission()
+    
+    const createUsersDisplay=(uploaded)=>{
+        const usersList = uploaded ? props.meeting.haveUploaded : props.meeting.haveNotUploaded
+        return usersList.map(user=>{
+            const email = user.user ? user.user : user
+            return(
+                <div key={email}>
+                    {email}
+                </div>
             )
         })
-
+    }
+    const slotSubmissionDisplay=()=>{
+        const middleTime = startTime<endTime ? (startTime+endTime)/2 : (startTime+(endTime+24-startTime)/2)%24
+        const data = []
+        for(const submission of submissionsMap){
+            const value = (submission[0].charAt(submission[0].length-1))
+            submission[0] = submission[0].substring(0,submission[0].length-1)
+            const slot = value==="A" ? submission[0]+` -- ${decimalToTime(startTime)}~${decimalToTime(middleTime)}` : submission[0]+` -- ${decimalToTime(middleTime)}~${decimalToTime(endTime)}`
+            data.push({
+                label: slot,
+                y: submission[1]
+            })
+        }
+        const options = {
+			title: {
+				text: "Submission Data"
+			},
+			data: [
+                {
+                    type: "doughnut",
+                    dataPoints: data
+                }
+			]
+		}
         return(
-            <div>
-                {submissions}
+            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-contentadmin-chart'>
+                <CanvasJSChart options = {options}/>
             </div>
         )
     }
-    fetchSubmission()
+
+    const decimalToTime=(decimal)=>{
+        return `${Math.floor(decimal)>12 ? Math.floor(decimal)-12:Math.floor(decimal)}:${decimal%1!==0 ? "30" : "00"}${decimal<12 ? " am" : " pm"}`
+    }
 
     const handleCreateMeetingSlots=()=>{
-        const slots = []
-        for(let i = 0; i < viewAmount; i++){
-            const mostPopularCount  = Math.max(...submissionCount.values())
-            for(const count of submissionCount){
-                if(count[1]===mostPopularCount){
-                    slots.push([count[0],submission.get(count[0])])
-                    submissionCount.delete(count[0])
-                }
+        const mostPopularSections = []
+        let maximum=-1
+        while(true){
+            const max = ([...submissionsMap.entries()].reduce((a, e ) => e[1] > a[1] ? e : a))
+            if(maximum===-1 || max[1]>=maximum*0.85){
+                maximum = max[1]
+                mostPopularSections.push(max[0])
+                submissionsMap.delete(max[0])
             }
+            else
+                break
         }
-        console.log(slots)
-        setGeneratedSlots(slots)
+        const middleTime = startTime<endTime ? (startTime+endTime)/2 : (startTime+(endTime+24-startTime)/2)%24
+
+        const ans = []
+        for(let section of mostPopularSections){
+            const char = (section.charAt(section.length-1))
+            section = section.substring(0,section.length-1)
+            let center = startTime<middleTime ? (startTime+middleTime)/2 : (startTime+(middleTime+24-startTime)/2)%24
+            if(char==="B")
+                center = middleTime<endTime ? (middleTime+endTime)/2 : (middleTime+(endTime+24-middleTime)/2)%24
+            ans.push(`${section}-${decimalToTime(center)}~${decimalToTime(center+details.duration)}`)
+        }
+        return ans
     }
     
     const selectMeetingSlot=(slot)=>{
-        console.log(slot)
         var config = {
             method:"post",
             url:"http://localhost:5000/api/meetings/selectSlot",
@@ -129,8 +141,7 @@ const IndivMeeting=(props)=>{
         }
         axios(config)
         .then(res=>{
-            console.log(res)
-            setSelectedSlot(slot)
+            props.rerender(prevRender=>!prevRender)
         })
         .catch(err=>{
             console.log(err)
@@ -138,99 +149,59 @@ const IndivMeeting=(props)=>{
     }
 
     const displayMeetingSlots=()=>{
-        return generatedSlots.map(slot=>{
-            const date = slotToDate(slot[0],2)
+        const slots = handleCreateMeetingSlots()
+        return slots.map(slot=>{
             return(
-                <ul key={date} className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-section2-slots'>
-                    {`From ${date[0]} to ${date[1]}:`}
-                    {slot[1].map(el=>{
-                        const elDate = slotToDate(el)
-                        return(
-                            <div key={el} className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-section2-slots-indiv'>
-                                {`${elDate[0]}~${elDate[1]}`}
-                                <button onClick={()=>{selectMeetingSlot(el)}}>Select</button>
-                            </div>
-                        )
-                    })}
-                </ul>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-contentadmin-indivcreatedSlots' 
+                    key={slot}>
+                    {slot}
+                    <button onClick={()=>selectMeetingSlot(slot)}>{"Select (Final)"}</button>
+                </div>
             )
         })
     }
 
     return(
-        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
-            <button className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-open' onClick={handleClickOpen}>
-            </button>
-            <Dialog 
-                open={open} 
-                onClose={handleClose}
-                sx={{
-                    "& .MuiDialog-container": {
-                      "& .MuiPaper-root": {
-                        width: "85%",
-                        height: "85%",
-                        maxWidth: "90vw",
-                        backgroundColor: "#794577"
-                      },
-                    },
-                    "& .MuiDialogTitle-root":{
-                        fontFamily:"Helvetica",
-                        fontWeight: "bold",
-                        fontSize: "25px",
-                        backgroundColor:"#A5A682",
-                    }
-                  }}
-            >
-                <DialogTitle>{details.name}</DialogTitle>
-                <DialogContent>
-                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-'>
-                        {selectedSlot===null ? 
-                            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
-                                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1'>
-                                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-header'>
-                                        <p>{`Member availabilities from ${startDate} to ${endDate}: `}</p>
-                                        {<button onClick={handleCreateMeetingSlots}>Generate meeting slots</button>}
-                                    </div>
-                                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content'>
-                                        {generatedSlots.length>0 ? <div
-                                            className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-section2'
-                                        >
-                                            <p>Generated Slots:</p>
-                                            {displayMeetingSlots()}
-                                        </div>:
-                                        <div
-                                            className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-section1'
-                                        >
-                                            <p>{`Submissions:`}</p>
-                                            {slotSubmissionDisplay()}
-                                        </div>
-                                        }
-                                    </div>
-                                </div>
-                                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2'>
-                                    <p>Members who have submitted:</p>
-                                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-section'>
-                                        {details.haveUploaded.length > 0 ? createUsersDisplay(true) : <p>No members have submitted yet</p>}
-                                    </div>                                    
-                                    <p>Members who haven't submitted:</p>
-                                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-section'>
-                                        {details.haveNotUploaded.length > 0 ? createUsersDisplay(false) : <p>No members have submitted yet</p>}
-                                    </div>    
-                                </div>
-                            </div>:
-                            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
-                                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-selected'>
-                                    <p>Selected Meeting Slot:</p>
-                                    {`${slotToDate(selectedSlot)[0]} ~ ${slotToDate(selectedSlot)[0]}`}
-                                </div>
-                            </div>
-                        }
-                        
+        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-'>
+            {!props.meeting.slots ? <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1'>
+                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-header'>
+                        <p>
+                            {`Member availabilities from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}: `}<br></br>
+                            {`between 
+                                ${decimalToTime(startTime)} and 
+                                ${decimalToTime(endTime)}
+                                for ${props.meeting.duration} hour`
+                            }
+                        </p>
+                        <button onClick={()=>setShowData(prevShowData=>!prevShowData)}>
+                            {showData ? "Generate meeting slots" : "View submission data"}
+                        </button>
                     </div>
-                </DialogContent>
-            </Dialog>
+                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-contentadmin'>
+                        {showData ? slotSubmissionDisplay() : displayMeetingSlots()}
+                    </div>
+                </div>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2'>
+                    <p>Members who have submitted:</p>
+                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-section'>
+                        {details.haveUploaded.length > 0 ? createUsersDisplay(true) : <p>No members have submitted yet</p>}
+                    </div>                                    
+                    <p>Members who haven't submitted:</p>
+                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-section'>
+                        {details.haveNotUploaded.length > 0 ? createUsersDisplay(false) : <p>All members have submitted</p>}
+                    </div>    
+                </div>
+            </div>:
+            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content3'>
+                    <h1>
+                        {`Finalized meeting slot is ${props.meeting.slots}`}
+                    </h1>
+                </div>
+            </div>}
         </div>
     )
 }
 
-export default IndivMeeting;
+export default IndivMeetingAdmin

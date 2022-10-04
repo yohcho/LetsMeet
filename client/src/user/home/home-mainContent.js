@@ -9,6 +9,7 @@ import "./home.css"
 
 const Content = (props) => {
     const [groups, setGroups] = useState([])
+    const [render, setRender] = useState(false)
     const getCurrentGroups = ()=>{
         var config={
             method:"get",
@@ -32,23 +33,23 @@ const Content = (props) => {
     
     useEffect(()=>{
         getCurrentGroups()
-    },[])
+    },[render])
 
     return (
         <div className='groups-page-content-main'>
             <div className='groups-page-content-main-pending'>
                 <h3>Pending Invites:</h3>
-                <PendingGroups userInfo={props.userInfo} rerender={setGroups}/>
+                <PendingGroups userInfo={props.userInfo} rerender={setRender}/>
             </div>
             <div className='groups-page-content-main-current'>
                 <div className='groups-page-content-main-current-header'>
                     <h3>My Groups:</h3>
-                    <CreateGroup userInfo={props.userInfo} rerender={setGroups}/>
+                    <CreateGroup userInfo={props.userInfo} rerender={setRender}/>
                 </div>
-                <CurrentGroup userInfo={props.userInfo} rerender={setGroups} groups={groups}/>
+                <CurrentGroup userInfo={props.userInfo} rerender={setRender} groups={groups}/>
             </div>
         </div>
     )
 }
-
+//
 export default Content;

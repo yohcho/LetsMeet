@@ -20,7 +20,7 @@ async function acceptPendingUser(data){
     await Users.updateOne(
         {email:data.email},
         {$pull:{pendingInvites:data.groupId},
-        $push:{currentGroups:data.groupId}}
+        $push:{currentGroups:`${data.groupId}@${data.name}`}}
     )
     await Groups.updateOne(
         {_id:data.groupId},

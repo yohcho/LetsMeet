@@ -1,92 +1,29 @@
 import { useState, useEffect } from 'react';
-import Dialog from '@mui/material/Dialog';
-import { DialogTitle, DialogContent } from '@mui/material';
 import axios from 'axios';
 
 import "./styles/indivMeeting.css"
 
-const IndivMeeting=(props)=>{
-    const details = props.meeting
-    const submitStatus= !details.haveNotUploaded.includes(props.userInfo.email)
-
-    const selectedSlot = details.slots
-    const startDate = details.range[0].split("T")[0]
-    const endDate = details.range[1].split("T")[0]
-    const [open,setOpen] = useState(false)
-    const [submission, setSubmission] = useState([])
+const IndivMeetingMember=(props)=>{
+    const startString = props.meeting.timeRangeStart.split(":")
+    const endString = props.meeting.timeRangeEnd.split(":")
+    const startTime = parseInt(startString[0])+ (startString[1]!=="0" && 0.5)
+    const endTime = parseInt(endString[0])+ (endString[1]!=="0" && 0.5)
+    let numCols = endTime>startTime ? (endTime-startTime)*2 : (endTime+24-startTime)*2
+    const startDate = new Date(props.meeting.range[0].split("T")[0].replaceAll('-','/'))
+    const endDate = new Date(props.meeting.range[1].split("T")[0].replaceAll('-','/'))
+    const numDays = (Math.ceil((endDate.getTime()-startDate.getTime())/(1000*3600*24)))+1
+    const slots = Array.from({length: numCols},()=> Array.from({length: numDays}, () => false))
+    const [submission, setSubmission] = useState([])    
     const [mouseHold, setMouseHold] = useState(false)
 
-    const handleClickOpen = () => {
-        setOpen(true);
-        fetchSubmission()
-    };
-    const handleClose = () => {
-        setOpen(false);
-        props.rerender()
-    };
-
-    const fetchSubmission=()=>{
-        if(!submitStatus){
-            const start=startDate.replaceAll('-','/')
-            const begin= new Date(start)
-
-            const end=endDate.replaceAll('-','/')
-            let stop= new Date(end)
-            stop.setDate(stop.getDate()+1)
-
-            const numHours = (stop.getTime()-begin.getTime())/(1000*3600)
-            const boxCount = []
-
-            for(let i = 0; i < numHours; i+=0.5){
-                boxCount.push(-1)
-            }
-            setSubmission(boxCount)
+    useEffect(()=>{
+        for(const userSubmission of props.meeting.haveUploaded){
+            if(userSubmission.user===props.userInfo.email)
+                setSubmission(userSubmission.slots)
         }
-    }
+    },[])
 
-    const handleClick=(slot)=>{
-        setSubmission(prevSubmission=>{
-            const newSubmission = [...prevSubmission]
-            if(newSubmission[slot]===-1){
-                newSubmission[slot]=1
-                for(let i = 1; i < details.duration*2; i++){
-                    if(newSubmission[slot+i]===1)
-                        break;
-                    newSubmission[slot+i]=0
-                }
-            }
-            else if(newSubmission[slot]===1){
-                newSubmission[slot]=-1
-                for(let i = 1; i < details.duration*2; i++){
-                    if(newSubmission[slot+i]===1)
-                        break;
-                    newSubmission[slot+i]=-1
-                }
-                for(let i = 1; i < details.duration*2; i++){
-                    if(newSubmission[slot-i]===1){
-                        newSubmission[slot-i]=-1
-                        handleClick(slot-i)
-                    }
-                }
-            }
-            else if(newSubmission[slot]===0){
-                newSubmission[slot]=1
-                for(let i = 1; i < details.duration*2; i++){
-                    if(newSubmission[slot+i]===1)
-                        break;
-                    newSubmission[slot+i]=0
-                }
-            }
-            return newSubmission
-        })
-    }
-
-    const handleSubmitSubmission=()=>{
-        const availableSlots=[]
-        for(let i =0; i<submission.length;i++){
-            if(submission[i]===1)
-                availableSlots.push(i)
-        }
+    const uploadSubmission=()=>{
         var config = {
             method:"post",
             url:"http://localhost:5000/api/meetings/uploadSchedule",
@@ -94,212 +31,184 @@ const IndivMeeting=(props)=>{
                 "Content-type":"application/json"
             },
             data:{
-                slots:availableSlots,
-                meetingId:details._id,
+                slots:submission,
+                meetingId:props.meeting._id,
                 user:props.userInfo.email
             }
         }
         axios(config)
         .then(res=>{
-            handleClose()
+            props.handleClose()
         })
         .catch(err=>{
-            console.log(err)
         })
     }
 
     const createSubmissionDisplay=()=>{
-        const display = []
-        const start=startDate.replaceAll('-','/')
-        let begin= new Date(start)
-        for(let i=0; i<submission.length/48;i++){
-            const row =[]
-            row.push(
-                <p key={begin[Symbol.toPrimitive]('string')}>
-                    {begin[Symbol.toPrimitive]('string').split("00:")[0]}
-                </p>
-            )
-            let startTime= new Date(start)
-            for(let j=0; j<48;j++){
-                const secondTime = new Date(startTime.getTime()+30*60000*details.duration*2)
-                const timeValue = `
-                    ${
-                        startTime[Symbol.toPrimitive]('string').substring(
-                            startTime[Symbol.toPrimitive]('string').indexOf(":")-2,
-                            startTime[Symbol.toPrimitive]('string').lastIndexOf(":")
-                        )
-                    } ~ ${
-                        secondTime[Symbol.toPrimitive]('string').substring(
-                            secondTime[Symbol.toPrimitive]('string').indexOf(":")-2,
-                            secondTime[Symbol.toPrimitive]('string').lastIndexOf(":")
-                        )
-                    }
-                `
-                startTime = new Date(startTime.getTime()+30*60000)
-                const minute = 30*j
-                let color = "transparent"
-                if(submission[i*48+j]===1){
-                    color="green"
-                }
-                else if(submission[i*48+j]===0){
-                    color="chartreuse"
-                }
-                row.push(
-                <button 
-                    className='selectorBox' 
-                    key={`${i}-${j}`} 
-                    onClick={()=>{handleClick(i*48+j)}}
-                    onMouseEnter={()=>{
-                        if(mouseHold)
-                        handleClick(i*48+j)
-                    }}
-                    style={{background:color}}
-                >
-                    {`${timeValue}`}
-                </button>
-            )}
-            display.push(
-                <div key={i} className='selectorDay'>
-                    {row}
-                </div>
-            )
-            begin.setDate(begin.getDate()+1)
-        }
-        display.push(
-            
-        )
-        return(
-            <div className='selectorField'>
-                {display}
-            </div>
-        )
-    }
-
-    const generateSelectedSlotsDisplay=()=>{
-        const availableSlots=[]
-        const start=startDate.replaceAll('-','/')
-        let begin= new Date(start)
-        for(let i =0; i<submission.length;i++){
-            if(submission[i]===1)
-                availableSlots.push(i)
-        }
-        return availableSlots.map(slot=>{
-            let slotdate = new Date(start)
-            slotdate.setDate(begin.getDate()+Math.floor(slot/48))
-            slotdate = new Date(slotdate.getTime()+30*60000*(slot%48))
-            let slotEnd = new Date(slotdate.getTime()+30*60000*details.duration*2)
+        let i = -1;
+        return slots.map(row=>{
+            i++
+            let j = -1;
             return (
-                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-indiv'>
-                    <p>{slotdate[Symbol.toPrimitive]('string').split(":")[0].slice(0,-3)}</p>
-                    <div>
-                        {slotdate[Symbol.toPrimitive]('string').substring(
-                            slotdate[Symbol.toPrimitive]('string').indexOf(":")-2,
-                            slotdate[Symbol.toPrimitive]('string').lastIndexOf(":")
-                        )}~
-                        {slotEnd[Symbol.toPrimitive]('string').substring(
-                            slotEnd[Symbol.toPrimitive]('string').indexOf(":")-2,
-                            slotEnd[Symbol.toPrimitive]('string').lastIndexOf(":")
-                        )}
-                    </div>                    
+                <div key={i} className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-schedule-row'>
+                    {row.map(col=>{
+                        j++
+                        const rowNum = 0+i
+                        const colNum = 0+j
+                        const color = setColor(rowNum,colNum)
+                        const date = new Date(startDate)
+                        date.setDate(date.getDate()+colNum)
+                        return (
+                            <div
+                                key={`${rowNum}-${colNum}`} 
+                                className='unselectable groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-schedule-row-block'
+                                style={{backgroundColor:color}}
+                                onClick={()=>handleSlotClick(rowNum,colNum)}
+                                onMouseEnter={()=>{mouseHold && handleSlotClick(rowNum,colNum)}}>
+                                    {`${date.getMonth()+1}/${date.getDate()}`}
+                            </div>
+                        )
+                    })}
                 </div>
             )
         })
     }
 
-    const slotToDate=(key,num)=>{
-        let factor=2
-        if(num){
-            factor=4
+    const setColor=(row,col)=>{
+        const index = `${row}-${col}`
+        if(submission.includes(index))
+            return "green"
+        let meetingLength = props.meeting.duration-0.5
+        while(meetingLength>0){
+            if(submission.includes(`${row-1}-${col}`))
+                return "cyan"
+            row--
+            meetingLength-=0.5
         }
-        const start=startDate.replaceAll('-','/')
-        let slotdate = new Date(start)
-        let begin= new Date(start)
-        slotdate.setDate(begin.getDate()+Math.floor(key/48))
-        slotdate = new Date(slotdate.getTime()+30*60000*(key%48))
-        const slotDateTimeOfDay = slotdate.getHours() > 11 ? "PM" : "AM"
-        let slotEnd = new Date(slotdate.getTime()+30*60000*details.duration*factor)
-        const slotEndTimeofDay = slotEnd.getHours() > 11 ? "PM" : "AM"
-        if(slotdate.getHours()===0){
-            slotdate.setHours(12)
-        }
-        if(slotEnd.getHours()===0){
-            slotEnd.setHours(12)
-        }
-        return [
-            `${slotdate[Symbol.toPrimitive]('string').substring(0,slotdate[Symbol.toPrimitive]('string').lastIndexOf(":"))} ${slotDateTimeOfDay}`,
-            `${slotEnd[Symbol.toPrimitive]('string').substring(0,slotEnd[Symbol.toPrimitive]('string').lastIndexOf(":"))} ${slotEndTimeofDay}`
-        ]
+
+        return "transparent"
     }
-    
+
+    const handleSlotClick=(row,col)=>{
+        setSubmission(prevSumbission=>{
+            let newSubmission           
+            if(prevSumbission.includes(`${row}-${col}`))
+                newSubmission = prevSumbission.filter(submission=>submission!==`${row}-${col}`)
+            else
+                newSubmission = [...prevSumbission,`${row}-${col}`]
+            return newSubmission
+        })
+    }
+
+    const createRangeVisual=()=>{
+        const times = []
+
+        let time = new Date();
+        time.setHours(startTime,0,0,0);
+        if(startTime%1!==0)
+            time.setMinutes(30)
+        while(true){
+            times.push([time.getHours(),time.getMinutes()])
+            time.setTime(time.getTime()+(60*60*1000))
+            if(time.getHours()>Math.floor(endTime) || (time.getHours()===(endTime) && time.getMinutes()===30))
+                break
+        }
+        return times.map(time=>{
+            const hour = time[0]<=12 ? time[0] : time[0]-12
+            const mins = time[1]===0 ? "00" : "30"
+            const amOrpm = time[0]<12 ? " am" : " pm"
+
+            return(
+                <div key={`${hour}-${mins}-${amOrpm}`} className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-schedule-times-block'>
+                    {`${hour}:${mins}${amOrpm}`}
+                </div>
+            )
+        })
+    }
+
+    const generateSelectedSlotsDisplay=()=>{
+        return submission.map(slot=>{
+            return (
+                <div key={slot}>
+                    {slotToTime(slot)}
+                </div>
+            )
+        })
+    }
+
+    const slotToTime=(slot)=>{
+        const time = slot.split("-")
+        time[0] = parseInt(time[0])+startTime*2
+        time[1] = parseInt(time[1])
+        
+        const date = new Date(startDate)
+        date.setDate(date.getDate()+time[1])
+        date.setTime(date.getTime()+(time[0]*30*60*1000))
+        const endTime= new Date(date)
+        endTime.setTime(endTime.getTime()+props.meeting.duration*60*60*1000)
+
+        return `${getTime(date)} ~ ${getTime(endTime,true)}`
+    }
+
+    const getTime=(date,end)=>{
+        const amOrpm = date.getHours()>12? " pm" : " am"
+        if(amOrpm===" pm")
+            date.setHours(date.getHours()-12)
+        const dateString = `${date}`
+        if(!end)
+        return `${dateString.substring(0,dateString.lastIndexOf(":"))}${amOrpm}`
+        else
+        return `${date.getHours()}:${date.getMinutes()===0 ? "00" : "30"}${amOrpm}`
+    }
+
     return(
-        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
-            <button className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-open' onClick={handleClickOpen}>
-            </button>
-            <Dialog 
-                open={open} 
-                onClose={handleClose}
-                sx={{
-                    "& .MuiDialog-container": {
-                      "& .MuiPaper-root": {
-                        width: "85%",
-                        height: "85%",
-                        maxWidth: "90vw",
-                        backgroundColor: "#794577"
-                      },
-                    },
-                    "& .MuiDialogTitle-root":{
-                        fontFamily:"Helvetica",
-                        fontWeight: "bold",
-                        fontSize: "25px",
-                        backgroundColor:"#A5A682",
-                    }
-                  }}
-            >
-                <DialogTitle>{details.name}</DialogTitle>
-                <DialogContent>
-                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-'>
-                        {selectedSlot===null ?
-                        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
-                            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1'>
-                                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-header'>
-                                    <p>{`Your availability from ${startDate} to ${endDate}: `}</p>
-                                    {!submitStatus && (
-                                        <button key={"submitButton"} onClick={handleSubmitSubmission}>
-                                            Submit
-                                        </button>
-                                    )}
-                                </div>
-                                {submitStatus ?
-                                <p>Submitted</p>:
-                                <div
-                                    className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content'
-                                    onMouseDown={()=>{setMouseHold(true)}}
-                                    onMouseUp={()=>{setMouseHold(false)}}
-                                >
-                                    <p>{`Meeting length: ${details.duration} hour`}</p>
-                                    {createSubmissionDisplay()}
-                                </div>
-                                }
-                            </div>
-                            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2'>
-                                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-header'>
-                                    <p>Selected Slots:</p>
-                                </div>
-                                {generateSelectedSlotsDisplay()}
-                            </div>
-                        </div>:
-                        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
-                            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-selected'>
-                                <p>Selected Meeting Slot:</p>
-                                {`${slotToDate(selectedSlot)[0]} ~ ${slotToDate(selectedSlot)[0]}`}
-                            </div>
-                        </div>
-                        }
+        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-'>
+            {!props.meeting.slots ? <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1'>
+                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-header'>
+                        <p>
+                            {`Your availability from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}, `}<br></br>
+                            {`between 
+                                ${Math.floor(startTime)>12 ? Math.floor(startTime)-12:Math.floor(startTime)}:${startTime%1!==0 ? "30" : "00"}${startTime<12 ? " am" : " pm"} and 
+                                ${Math.floor(endTime)>12 ? Math.floor(endTime)-12 : Math.floor(endTime)}:${endTime%1!==0 ? "30" : "00"}${endTime<12 ? " am" : " pm"}
+                                for ${props.meeting.duration} hour`
+                            }
+                        </p>
+                        <button onClick={uploadSubmission}>
+                            {props.meeting.haveNotUploaded.includes(props.userInfo.email) ? "Submit" : "Re-Submit"}
+                        </button>
                     </div>
-                </DialogContent>
-            </Dialog>
+                    <div
+                        className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content'
+                    >
+                        <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-schedule'>
+                            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-schedule-times'>
+                                {createRangeVisual()}</div>
+                            <div 
+                                className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content1-content-schedule-board'
+                                onMouseDown={()=>{setMouseHold(true)}}
+                                onMouseUp={()=>{setMouseHold(false)}}>
+                                    {createSubmissionDisplay()}</div>
+                        </div>                 
+                    </div>
+                </div>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2'>
+                    <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content2-header'>
+                        <p>Selected Slots:</p>
+                        {generateSelectedSlotsDisplay()}
+                    </div>
+                    
+                </div>
+            </div>:
+            <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full'>
+                <div className='groups-page-content-main-current-individualDisplay-full-section-indiv-full-content3'>
+                    <h1>
+                        {`Finalized meeting slot is ${props.meeting.slots}`}
+                    </h1>
+                </div>
+            </div>}           
         </div>
     )
 }
 
-export default IndivMeeting;
+export default IndivMeetingMember

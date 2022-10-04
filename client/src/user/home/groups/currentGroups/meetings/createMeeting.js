@@ -12,6 +12,8 @@ const CreateMeeting = (props)=>{
     const [memberField,setMemberField] = useState("")
     const [members,setMembers] = useState([])
     const [startRange,setStartRange] = useState("")
+    const [startTime,setStartTime] = useState("")
+    const [endTime,setEndTime] = useState("")
     const [endRange,setEndRange] = useState("")
 
     const handleClickOpen = () => {
@@ -46,7 +48,9 @@ const CreateMeeting = (props)=>{
             length:meetingLength,
             addedMembers:members,
             range:[startRange,endRange],
-            groupId:props.group
+            groupId:props.group,
+            start:startTime,
+            end:endTime,
         }
         var config = {
             method:"post",
@@ -59,10 +63,7 @@ const CreateMeeting = (props)=>{
         axios(config)
         .then(res=>{
             handleClose()
-            props.rerender(prevMeetings=>{
-                const newMeetings = [...prevMeetings,res.data.newMeetingId]
-                return newMeetings
-            })
+            props.rerender(prevRender=>!prevRender)
         })
         .catch(err=>{
             console.log(err)
@@ -79,6 +80,7 @@ const CreateMeeting = (props)=>{
             )
         })
     }
+
     return(
         <div>
             <button className='groups-page-content-main-current-individualDisplay-full-section-header-button' onClick={handleClickOpen}>
@@ -108,6 +110,11 @@ const CreateMeeting = (props)=>{
                             <input type="date" onChange={(e)=> setStartRange(e.target.value)}></input>
                             to
                             <input type="date" onChange={(e)=> setEndRange(e.target.value)}></input>
+                        </label><br></br>
+                        <label>Between the hours:
+                            <input type="time" onChange={(e)=> setStartTime(e.target.value)}></input>
+                            to
+                            <input type="time" onChange={(e)=> setEndTime(e.target.value)}></input>
                         </label><br></br>
                         <button type='submit' onClick={(e)=>handleCreateMeeting(e)}>Create</button>
                     </div>

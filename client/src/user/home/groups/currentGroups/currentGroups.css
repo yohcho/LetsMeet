@@ -11,18 +11,20 @@
 .groups-page-content-main-current-individualDisplay-buttons{
     display: flex;
     position: relative;
+    height: 30px;
 }
 
 .groups-page-content-main-current-individualDisplay-buttons-viewmore{
     position: absolute;
     background-color: transparent;
     top: -2vh;
-    left: -90vw;
-    width: 92vw;
-    height: 7vh;
+    left: -92vw;
+    height: 57px;
+    width: 93vw;
     border-radius: 12px;
     cursor: pointer;
     border: none;
+    font-size: 20px;
 }
 
 .groups-page-content-main-current-individualDisplay-buttons-remove{
@@ -99,12 +101,11 @@
     margin-top: 10px;
 }
 
-.groups-page-content-main-current-individualDisplay-full-section-content-indiv > button{
+.groups-page-content-main-current-individualDisplay-full-section-content-indiv-remove{
     background-color: transparent;
     border: none;
     cursor: pointer;
     font-size: 17px;
-    margin: 2px 2px;
 }
 
 .groups-page-content-main-current-individualDisplay-full-section-indiv{

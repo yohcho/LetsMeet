@@ -7,7 +7,6 @@ const groups = new mongoose.Schema(
         groupId: {type:String},
         members: [{type:String}],
         inviteCode: {type:String},
-        meetings:[{type:String}]
     }, {collection: 'Groups'}
 );
 

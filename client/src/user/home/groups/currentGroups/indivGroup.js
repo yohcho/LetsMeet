@@ -1,55 +1,66 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import { DialogTitle, DialogContent } from '@mui/material';
 import axios from 'axios';
 
 import CreateMeeting from './meetings/createMeeting';
 import AddNewMember from './addNewGroupMember';
-import IndivMeetingAdmin from './meetings/indivMeetingAdmin';
-import IndivMeetingMember from './meetings/indivMeetingMember';
+import RemoveGroupMember from './removeGroupMember';
+import IndivMeeting from './meetings/indivMeeting';
 
 
 const IndivGroup = (props)=>{
-    const group = props.group
-    const [meetings,setMeetings] = useState(group.meetings)
+    const [group,setGroup] = useState("")
     const [meetingInfos,setMeetingInfos] = useState([])
     const [open,setOpen] = useState(false)
     const [render,setRender] = useState(false)
-    const [members,setMembers] = useState(group.members)
 
     const handleClickOpen = () => {
-        setOpen(true);
+        setOpen(true)
+        getGroupInfo()
         getMeetingInfo()
     };
     const handleClose = () => {
         setOpen(false);
     };
-
-    const removeMember=(member)=>{
-        console.log(member)
+    const getGroupInfo=()=>{
+        const id = props.group.split("@")[0]
+        var config = {
+            method:"get",
+            url:"http://localhost:5000/api/groups/getGroupData",
+            headers:{
+                "Content-type":"application/json"
+            },
+            params:{
+                id:id
+            }
+        }
+        axios(config)
+        .then(res=>{
+            setGroup(res.data.group)
+        })
+        .catch(err=>{
+            console.log(err)
+        })
     }
 
+
     const createUsersDisplay =()=>{
-        return members.map(member=>{
+        return group.members.map(member=>{
             return(
                 <div key={member}>
                     <div className='groups-page-content-main-current-individualDisplay-full-section-content-indiv'>
                         <p>{member}</p>
-                        <button onClick={()=>removeMember(member)}>❌</button>
+                        {props.userInfo.email === group.admin && member!==group.admin && <RemoveGroupMember rerender={setRender} group={props.group} member={member}/>}
                     </div>
                     <hr></hr>
                 </div>
                 
             )
         })
+        
     }
     const createMeetingsDisplay = ()=>{
-        if(meetingInfos.length===0)
-            return(
-                <div>
-                    No Scheduled Meetings
-                </div>
-            )
         return meetingInfos.map(meeting=>{
             return(
                 <div className='groups-page-content-main-current-individualDisplay-full-section-indiv' key={meeting._id}>
@@ -58,14 +69,12 @@ const IndivGroup = (props)=>{
                     </div>                
                     <hr></hr>
                     <h4>{`⏱️ ${meeting.duration} ${meeting.duration > 1 ? "hours" : "hour"}`}</h4>              
-                    {meeting.admin===props.userInfo.email ? 
-                    <IndivMeetingAdmin key={meeting._id} userInfo={props.userInfo} meeting={meeting} rerender={setRender}/>:
-                    <IndivMeetingMember key={meeting._id} rerender={handleClickOpen} userInfo={props.userInfo} meeting={meeting}/>}
+                    <IndivMeeting key={meeting._id} userInfo={props.userInfo} meeting={meeting} rerender={setRender}/>
                 </div>
             )
         })
+        
     }
-
     const getMeetingInfo = ()=>{
         var config = {
             method:"get",
@@ -74,8 +83,8 @@ const IndivGroup = (props)=>{
                 "Content-type":"application/json"
             },
             params:{
-                email:props.userInfo.email,
-                meetingId:meetings
+                id:props.group.split("@")[0],
+                email:props.userInfo.email
             }
         }
         axios(config)
@@ -87,9 +96,15 @@ const IndivGroup = (props)=>{
         })
     }
 
+    useEffect(()=>{
+        getGroupInfo()
+        getMeetingInfo()
+    },[render])
+
     return(
         <div>
             <button className='groups-page-content-main-current-individualDisplay-buttons-viewmore' onClick={handleClickOpen}>
+                {props.group.split("@")[1]}
             </button>
             <Dialog
                 open={open} 
@@ -111,7 +126,7 @@ const IndivGroup = (props)=>{
                   }}
             >
                 <DialogTitle>
-                    {group.name}
+                    {props.group.split("@")[1]}
                 </DialogTitle>
                 <DialogContent>
                     <div className='groups-page-content-main-current-individualDisplay-full'>
@@ -121,15 +136,15 @@ const IndivGroup = (props)=>{
                                 <AddNewMember group={group._id}/>
                             </div>
                             <div className='groups-page-content-main-current-individualDisplay-full-section-content'>
-                                {createUsersDisplay()}
+                                {open && createUsersDisplay()}
                             </div>
                         </div>
                         <div className='groups-page-content-main-current-individualDisplay-full-section2'>
                             <div className='groups-page-content-main-current-individualDisplay-full-section-header'>
                                 <h3>Meetings:</h3>
-                                <CreateMeeting userInfo={props.userInfo} group={group._id} rerender={setMeetings}/>
+                                <CreateMeeting userInfo={props.userInfo} group={group._id} rerender={setRender}/>
                             </div>
-                            {createMeetingsDisplay()}
+                            {open && createMeetingsDisplay()}
                         </div>
                     </div>
                 </DialogContent>

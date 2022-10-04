@@ -32,10 +32,7 @@ const CreateGroup = (props)=>{
         
         axios(config)
         .then((res)=>{
-            props.rerender(prevGroups=>{
-                const newGroups = [...prevGroups,res.data.newGroup]
-                return newGroups
-            })
+            props.rerender(prevRender=>!prevRender)
             handleClose()
         })
         .catch((err)=>{

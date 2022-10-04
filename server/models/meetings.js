@@ -7,11 +7,14 @@ const meetings = new mongoose.Schema(
         admin: {type: String},
         haveUploaded: [{
             user: {type:String}, 
-            slots: [{type:Number}]
+            slots: [{type:String}]
         }],
         haveNotUploaded: [{type:String}],
         range: [{type:Date},{type:Date}],
-        slots:{type:Number, required: false}
+        timeRangeStart: {type: String},
+        timeRangeEnd: {type: String},
+        groupID: {type:String},
+        slots:{type:String, required: false}
     }, {collection: 'Meetings'}
 );
 
