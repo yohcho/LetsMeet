@@ -1,9 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "A web application to help users coordinate meetings.",
   "main": "app.js",
   "engines": {
+    "npm": "8.5.0",
     "node": "16.14.2"
   },
   "scripts": {
@@ -24,5 +25,14 @@
     "moment": "^2.29.4",
     "mongoose": "^6.4.2",
     "nodemon": "^2.0.18"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yohcho/LetsMeet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yohcho/LetsMeet/issues"
+  },
+  "homepage": "https://github.com/yohcho/LetsMeet#readme"
 }
