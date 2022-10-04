@@ -34,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/yohcho/LetsMeet/issues"
   },
-  "homepage": "https://github.com/yohcho/LetsMeet#readme"
+  "homepage": "https://github.com/yohcho/LetsMeet#readme",
+  "eslintConfig": {
+    "extends":"react-app"
+  }
 }
