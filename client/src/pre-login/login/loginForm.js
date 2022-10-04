@@ -20,7 +20,7 @@ const LoginForm = () => {
 
         var config ={
             method: "post",
-            url: 'http://localhost:5000/api/landing/login',
+            url: '/api/landing/login',
             headers: {
                 'Content-Type':'application/json',
             },

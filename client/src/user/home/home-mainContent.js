@@ -13,7 +13,7 @@ const Content = (props) => {
     const getCurrentGroups = ()=>{
         var config={
             method:"get",
-            url:"http://localhost:5000/api/groups/getGroups",
+            url:"/api/groups/getGroups",
             header:{
                 "Content-type":"application/json"
             },

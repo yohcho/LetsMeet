@@ -17,7 +17,7 @@ const DeleteGroup = (props)=>{
     const removeGroup=()=>{
         var config={
             method:"post",
-            url:"http://localhost:5000/api/groups/removeGroup",
+            url:"/api/groups/removeGroup",
             header:{
                 "Content-type":"application/json"
             },

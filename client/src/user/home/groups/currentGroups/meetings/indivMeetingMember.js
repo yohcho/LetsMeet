@@ -26,7 +26,7 @@ const IndivMeetingMember=(props)=>{
     const uploadSubmission=()=>{
         var config = {
             method:"post",
-            url:"http://localhost:5000/api/meetings/uploadSchedule",
+            url:"/api/meetings/uploadSchedule",
             headers:{
                 "Content-type":"application/json"
             },

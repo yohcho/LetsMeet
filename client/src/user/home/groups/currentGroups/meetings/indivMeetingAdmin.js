@@ -130,7 +130,7 @@ const IndivMeetingAdmin=(props)=>{
     const selectMeetingSlot=(slot)=>{
         var config = {
             method:"post",
-            url:"http://localhost:5000/api/meetings/selectSlot",
+            url:"/api/meetings/selectSlot",
             headers:{
                 "Content-type":"application/json"
             },

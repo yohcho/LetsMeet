@@ -18,7 +18,7 @@ const AddNewMember = (props)=>{
     const handleAddMember=()=>{
         var config = {
             method: "post",
-            url: 'http://localhost:5000/api/meetings/addMember',
+            url: '/api/meetings/addMember',
             headers: {
                 'Content-Type':'application/json',
             },

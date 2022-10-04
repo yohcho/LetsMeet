@@ -54,7 +54,7 @@ const CreateMeeting = (props)=>{
         }
         var config = {
             method:"post",
-            url:"http://localhost:5000/api/meetings/createMeeting",
+            url:"/api/meetings/createMeeting",
             headers:{
                 "Content-type":"application/json"
             },

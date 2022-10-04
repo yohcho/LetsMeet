@@ -23,7 +23,7 @@ const CreateGroup = (props)=>{
 
         var config = {
             method: "post",
-            url: 'http://localhost:5000/api/groups/createGroup',
+            url: '/api/groups/createGroup',
             headers: {
                 'Content-Type':'application/json',
             },

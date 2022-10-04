@@ -7,7 +7,7 @@ const PendingGroups=(props)=>{
     const getPendingGroups=()=>{
         var config = {
             method:"get",
-            url:"http://localhost:5000/api/users/getPendingGroups",
+            url:"/api/users/getPendingGroups",
             headers:{
                 "Content-type":"application/json"
             },
@@ -27,7 +27,7 @@ const PendingGroups=(props)=>{
     const handleAccept=(group)=>{
         var config = {
             method:"post",
-            url:"http://localhost:5000/api/users/acceptPendingUser",
+            url:"/api/users/acceptPendingUser",
             headers:{
                 "Content-type":"application/json"
             },
@@ -53,7 +53,7 @@ const PendingGroups=(props)=>{
         })
         var config = {
             method:"post",
-            url:"http://localhost:5000/api/users/rejectPendingUser",
+            url:"/api/users/rejectPendingUser",
             headers:{
                 "Content-type":"application/json"
             },

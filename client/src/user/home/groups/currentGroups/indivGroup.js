@@ -27,7 +27,7 @@ const IndivGroup = (props)=>{
         const id = props.group.split("@")[0]
         var config = {
             method:"get",
-            url:"http://localhost:5000/api/groups/getGroupData",
+            url:"/api/groups/getGroupData",
             headers:{
                 "Content-type":"application/json"
             },
@@ -78,7 +78,7 @@ const IndivGroup = (props)=>{
     const getMeetingInfo = ()=>{
         var config = {
             method:"get",
-            url:"http://localhost:5000/api/meetings/getMeeting",
+            url:"/api/meetings/getMeeting",
             headers:{
                 "Content-type":"application/json"
             },

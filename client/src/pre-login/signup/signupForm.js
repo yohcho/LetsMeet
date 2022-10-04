@@ -14,7 +14,7 @@ const SignUpForm = () => {
     const submitSignUp = ()=>{
         var config ={
             method: "post",
-            url: 'http://localhost:5000/api/landing/signup',
+            url: '/api/landing/signup',
             headers: {
                 'Content-Type':'application/json',
             },

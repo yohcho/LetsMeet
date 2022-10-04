@@ -19,7 +19,7 @@ const RemoveGroupMember = (props)=>{
         console.log(props.group)
         var config = {
             method:"post",
-            url:"http://localhost:5000/api/groups/removeMember",
+            url:"/api/groups/removeMember",
             headers:{
                 "Content-type":"application/json"
             },
