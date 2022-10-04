@@ -39,6 +39,7 @@ const IndivMeetingMember=(props)=>{
         axios(config)
         .then(res=>{
             props.handleClose()
+            props.rerender(prevRender=>!prevRender)
         })
         .catch(err=>{
         })

@@ -40,6 +40,10 @@ async function addMember(data){
 async function uploadSchedule(data){
     await Meetings.updateOne(
         {_id:data.meetingId},
+        {$pull:{haveUploaded:{user:data.user}}}
+    )
+    await Meetings.updateOne(
+        {_id:data.meetingId},
         {
             $push:{haveUploaded:{
                 user:data.user,

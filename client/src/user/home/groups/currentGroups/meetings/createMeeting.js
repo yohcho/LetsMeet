@@ -81,6 +81,23 @@ const CreateMeeting = (props)=>{
         })
     }
 
+    const setTime=(val,state)=>{
+        const time = val.split(":")
+        if(parseInt(time[1])<15)
+            time[1]="00"
+        if(parseInt(time[1])>=45){
+            time[0]=`${parseInt(time[0])+1}`
+            time[1]="00"
+        }
+        if(parseInt(time[1])<45 && parseInt(time[1])>=15){
+            time[1]="30"
+        }
+        if(state==="start")
+            setStartTime(`${time[0]}:${time[1]}`)
+        if(state==="end")
+            setEndTime(`${time[0].length===1 ? `0${time[0]}`: `${time[0]}`}:${time[1]}`)
+    }
+
     return(
         <div>
             <button className='groups-page-content-main-current-individualDisplay-full-section-header-button' onClick={handleClickOpen}>
@@ -112,9 +129,9 @@ const CreateMeeting = (props)=>{
                             <input type="date" onChange={(e)=> setEndRange(e.target.value)}></input>
                         </label><br></br>
                         <label>Between the hours:
-                            <input type="time" onChange={(e)=> setStartTime(e.target.value)}></input>
+                            <input type="time" value={startTime} onChange={(e)=> setTime(e.target.value,"start")}></input>
                             to
-                            <input type="time" onChange={(e)=> setEndTime(e.target.value)}></input>
+                            <input type="time" value={endTime} onChange={(e)=> setTime(e.target.value,"end")}></input>
                         </label><br></br>
                         <button type='submit' onClick={(e)=>handleCreateMeeting(e)}>Create</button>
                     </div>
