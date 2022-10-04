@@ -36,6 +36,6 @@
   },
   "homepage": "https://github.com/yohcho/LetsMeet#readme",
   "eslintConfig": {
-    "extends":"react-app"
+    "extends": "react-app"
   }
 }
