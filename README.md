@@ -1,5 +1,6 @@
 # LetsMeet
 A web application to help users coordinate meetings.
+
 ![image](https://user-images.githubusercontent.com/95256337/193784196-5555207a-81b6-4f9a-91e0-4d196b1f512a.png)
 
 # How it works?
