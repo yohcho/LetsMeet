@@ -18,7 +18,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 const initialize = async()=>{
-    await mongoose.connect(process.env.MONGODB_URI || `mongodb+srv://yohcho:qw123edc@cluster0.dmxfo.mongodb.net/Let'sMeet!?retryWrites=true&w=majority`)
+    await mongoose.connect(process.env.MONGODB_URI || `mongodb+srv://yohcho:qw123edc@cluster0.dmxfo.mongodb.net/?retryWrites=true&w=majority`)
 }
 
 initialize()
