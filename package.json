@@ -37,5 +37,9 @@
   "homepage": "https://github.com/yohcho/LetsMeet#readme",
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-config-react-app": "^7.0.1"
   }
 }
