@@ -1,10 +1,12 @@
 import React,{useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
 import { Link } from "react-router-dom";
 
 import "./signup.css"
 
 const SignUpForm = () => {
+    const navigate = useNavigate();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -26,7 +28,7 @@ const SignUpForm = () => {
         }
         axios(config)
         .then((res)=>{
-            window.location.href='/login'
+            navigate("/login")
         })
         .catch((err)=>{
             console.log(err)
